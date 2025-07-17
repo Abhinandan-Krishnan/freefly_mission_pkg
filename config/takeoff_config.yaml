@@ -11,6 +11,6 @@ takeoff_speed: 2.0           # Takeoff speed
 landing_speed: 1.0           # Landing speed
 
 # Navigation settings
-waypoint_tolerance: 1.0      # Distance tolerance for waypoint arrival (meters)
-approach_distance: 5.0       # Distance to start speed reduction (meters)
+waypoint_tolerance: 0.2     # Distance tolerance for waypoint arrival (meters)
+approach_distance: 2.0       # Distance to start speed reduction (meters)
 min_speed: 0.2               # Minimum navigation speed (meters/second)

@@ -157,16 +157,18 @@ class NavigationHelper:
             return self.waypoints[self.current_index]
         return None
     
-    def check_waypoint_reached(self, current_pos: List[float]) -> bool:
+    def check_waypoint_reached(self, current_pos: List[float],logger) -> bool:
         """Check if current waypoint is reached"""
         if self.current_index >= len(self.waypoints):
             return False
         
         current_waypoint = self.waypoints[self.current_index]
         distance = DroneUtilities.calculate_distance(current_pos, current_waypoint)
+        if (distance < self.tolerance):
+            logger.info(f"Waypoint {self.current_index} reached. Tolerance: {distance}m")
         return distance < self.tolerance
     
-    def advance_to_next_waypoint(self) -> Tuple[bool, Optional[List[float]]]:
+    def advance_to_next_waypoint(self) -> Tuple[bool, Optional[List[float]],Optional[int]]:
         """
         Advance to next waypoint
         Returns: (has_next_waypoint, next_waypoint_or_none)
@@ -175,9 +177,9 @@ class NavigationHelper:
         
         if self.current_index >= len(self.waypoints):
             self.is_mission_complete = True
-            return False, None
+            return False, None,None
         
-        return True, self.waypoints[self.current_index]
+        return True, self.waypoints[self.current_index],self.current_index
     
     def reset_mission(self):
         """Reset mission to start from first waypoint"""

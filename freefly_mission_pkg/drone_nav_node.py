@@ -40,15 +40,16 @@ class SimpleDroneController(Node):
         self.vehicle_status = VehicleStatus()
         self.vehicle_local_position = VehicleLocalPosition()
         self.is_armed = False
+        self.waypoints_started = False
         
-        # Initialize with default configuration
+        # Initialize with default configuration (will be reloaded on mission start)
         self.config = {
             'takeoff_height': 5.0,
             'max_horizontal_speed': 3.0,
             'max_vertical_speed': 1.5,
             'takeoff_speed': 2.0,
             'landing_speed': 1.0,
-            'waypoint_tolerance': 1.0,
+            'waypoint_tolerance': 0.2,
             'approach_distance': 5.0,
             'min_speed': 0.2
         }
@@ -62,10 +63,11 @@ class SimpleDroneController(Node):
         self.data_folder = "/home/abhinandan/Downloads/Freefly/freefly_ws/src/freefly_mission_pkg/data"
         os.makedirs(self.data_folder, exist_ok=True)
         self.position_log_file = None
+
         
-        # Load configuration and waypoints using utilities
-        self.load_configuration()
-        self.load_waypoint_data()
+        # File paths for dynamic loading
+        self.config_file_path = "/home/abhinandan/Downloads/Freefly/freefly_ws/src/freefly_mission_pkg/config/takeoff_config.yaml"
+        self.waypoints_file_path = "/home/abhinandan/Downloads/Freefly/freefly_ws/src/freefly_mission_pkg/config/waypoints.txt"
         
         # Publishers to PX4
         self.vehicle_command_pub = self.create_publisher(
@@ -105,26 +107,31 @@ class SimpleDroneController(Node):
         self.status_timer = self.create_timer(1.0, self.publish_status)
         
         self.get_logger().info(f"Simple Drone Controller initialized")
-        self.get_logger().info(f"Takeoff height: {self.config['takeoff_height']}m")
         self.get_logger().info(f"Data folder: {self.data_folder}")
-        if self.navigation_helper:
-            self.get_logger().info(f"Loaded {len(self.navigation_helper.waypoints)} waypoints")
+        self.get_logger().info(f"Config file: {self.config_file_path}")
+        self.get_logger().info(f"Waypoints file: {self.waypoints_file_path}")
         self.get_logger().info("Available services:")
         self.get_logger().info("  - /drone/start_waypoint_mission: Start waypoint mission (includes takeoff)")
         self.get_logger().info("  - /drone/land: Emergency land (can be used during mission)")
+        self.get_logger().info("Note: Config and waypoints are loaded fresh on each mission start")
 
     def load_configuration(self):
         """Load configuration using DroneUtilities"""
-        config_file = "/home/abhinandan/Downloads/Freefly/freefly_ws/src/freefly_mission_pkg/config/takeoff_config.yaml"
-        self.config = DroneUtilities.load_config(config_file, self.get_logger())
+        self.config = DroneUtilities.load_config(self.config_file_path, self.get_logger())
+        self.get_logger().info(f"Loaded config - Takeoff height: {self.config['takeoff_height']}m")
     
     def load_waypoint_data(self):
         """Load waypoints using DroneUtilities"""
-        waypoints_file = "/home/abhinandan/Downloads/Freefly/freefly_ws/src/freefly_mission_pkg/config/waypoints.txt"
-        waypoints = DroneUtilities.load_waypoints(waypoints_file, self.get_logger())
+        waypoints = DroneUtilities.load_waypoints(self.waypoints_file_path, self.get_logger())
         
         if waypoints:
             self.navigation_helper = NavigationHelper(waypoints, self.config['waypoint_tolerance'])
+            self.get_logger().info(f"Loaded {len(waypoints)} waypoints")
+            return True
+        else:
+            self.navigation_helper = None
+            self.get_logger().error("No waypoints loaded")
+            return False
     
     def vehicle_status_callback(self, msg):
         """Callback for vehicle status updates"""
@@ -140,7 +147,7 @@ class SimpleDroneController(Node):
             self.home_position = [msg.x, msg.y, msg.z]
         
         # Write position to file during mission
-        if self.mission_active and self.position_log_file:
+        if self.waypoints_started and self.position_log_file:
             self.position_log_file.write(f"{msg.x}, {msg.y}, {msg.z}\n")
             self.position_log_file.flush()
         
@@ -190,11 +197,14 @@ class SimpleDroneController(Node):
             if self.navigation_helper:
                 current_pos = [self.vehicle_local_position.x, self.vehicle_local_position.y, self.vehicle_local_position.z]
                 
-                if self.navigation_helper.check_waypoint_reached(current_pos):
+                if self.navigation_helper.check_waypoint_reached(current_pos,self.get_logger()):
                     progress = self.navigation_helper.get_mission_progress()
                     self.get_logger().info(f"Reached waypoint {progress['current_waypoint']}")
+
+                    #Indidate that waypoints nav is started for logging and nozzle operation
+                    self.waypoints_started = True
                     
-                    has_next, next_waypoint = self.navigation_helper.advance_to_next_waypoint()
+                    has_next, next_waypoint,waypoint_number = self.navigation_helper.advance_to_next_waypoint()
                     
                     if has_next and next_waypoint:
                         # Go to next waypoint
@@ -204,6 +214,7 @@ class SimpleDroneController(Node):
                     else:
                         # All waypoints visited, return home
                         self.flight_state = "RETURN_HOME"
+                        self.waypoints_started = False
                         self.target_position = [self.home_position[0], self.home_position[1], -self.config['takeoff_height']]
                         self.get_logger().info("All waypoints visited, returning home")
         
@@ -224,6 +235,7 @@ class SimpleDroneController(Node):
             if current_altitude < 0.5:
                 self.flight_state = "IDLE"
                 self.mission_active = False
+                
                 # Close position log file
                 if self.position_log_file:
                     self.position_log_file.close()
@@ -384,24 +396,32 @@ class SimpleDroneController(Node):
         """Service callback for starting a complete waypoint mission (includes takeoff)"""
         try:
             if self.flight_state == "IDLE":
-                if self.navigation_helper:
-                    self.mission_active = True
-                    self.flight_state = "ARMING"  # Start mission from arming
-                    self.offboard_setpoint_counter = 0
-                    self.target_position = [0.0, 0.0, -self.config['takeoff_height']]
-                    
-                    # Open position log file when mission starts
-                    log_file_path = os.path.join(self.data_folder, "drone_position.txt")
-                    self.position_log_file = open(log_file_path, 'w')
-                    self.get_logger().info(f"Started position logging to: {log_file_path}")
-                    
-                    self.get_logger().info("Waypoint mission initiated. Starting arming sequence...")
-                    self.get_logger().info("Mission will: ARM -> TAKEOFF -> NAVIGATE WAYPOINTS -> RETURN HOME -> LAND")
-                    response.success = True
-                    response.message = f"Waypoint mission started. Will visit {len(self.navigation_helper.waypoints)} waypoints"
-                else:
+                # Load fresh configuration and waypoints each time
+                self.get_logger().info("Loading fresh configuration and waypoints...")
+                self.load_configuration()
+                
+                if not self.load_waypoint_data():
                     response.success = False
-                    response.message = "No waypoints loaded for mission"
+                    response.message = "Failed to load waypoints for mission"
+                    return response
+                
+                # Start mission with fresh data
+                self.mission_active = True
+                self.flight_state = "ARMING"  # Start mission from arming
+                self.offboard_setpoint_counter = 0
+                self.target_position = [0.0, 0.0, -self.config['takeoff_height']]
+                
+                # Open position log file when mission starts
+                log_file_path = os.path.join(self.data_folder, "drone_position.txt")
+                self.position_log_file = open(log_file_path, 'w')
+                self.get_logger().info(f"Started position logging to: {log_file_path}")
+                
+                self.get_logger().info("Waypoint mission initiated with fresh data. Starting arming sequence...")
+                self.get_logger().info("Mission will: ARM -> TAKEOFF -> NAVIGATE WAYPOINTS -> RETURN HOME -> LAND")
+                response.success = True
+                waypoint_count = len(self.navigation_helper.waypoints) if self.navigation_helper else 0
+                response.message = f"Waypoint mission started with fresh config and {waypoint_count} waypoints"
+                
             elif self.flight_state == "LANDING":
                 response.success = False
                 response.message = "Cannot start mission while landing. Wait for landing to complete."
