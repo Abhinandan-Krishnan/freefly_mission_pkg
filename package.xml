@@ -7,6 +7,12 @@
   <maintainer email="abhi@evevehicles.com">abhinandan</maintainer>
   <license>TODO: License declaration</license>
 
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>px4_msgs</depend>
+
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
   <test_depend>ament_pep257</test_depend>

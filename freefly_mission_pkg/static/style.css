@@ -1,0 +1,288 @@
+/* General body styling */
+body {
+    background: #000000;
+    min-height: 100vh;
+    font-family: 'Arial', sans-serif;
+    color: #ffffff;
+}
+
+/* Card styling */
+.card {
+    border: none;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    background: rgba(20, 20, 20, 0.95);
+    transition: all 0.3s ease;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    background: rgba(30, 30, 30, 0.95);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(10, 10, 10, 0.9) !important;
+}
+
+/* Button styling */
+.btn {
+    border-radius: 25px;
+    padding: 12px 30px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    border: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.8);
+}
+
+.btn-success {
+    background: linear-gradient(45deg, #28a745, #20c997);
+}
+
+.btn-success:hover {
+    background: linear-gradient(45deg, #218838, #1ea085);
+}
+
+.btn-danger {
+    background: linear-gradient(45deg, #dc3545, #e83e8c);
+}
+
+.btn-danger:hover {
+    background: linear-gradient(45deg, #c82333, #d91a72);
+}
+
+.btn-warning {
+    background: linear-gradient(45deg, #ffc107, #fd7e14);
+    color: #000000;
+}
+
+.btn-warning:hover {
+    background: linear-gradient(45deg, #e0a800, #e55a00);
+    color: #000000;
+}
+
+/* Form controls styling for dark theme */
+.form-control {
+    background: rgba(40, 40, 40, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    border-radius: 10px;
+}
+
+.form-control:focus {
+    background: rgba(50, 50, 50, 0.9);
+    border-color: rgba(255, 193, 7, 0.5);
+    color: #ffffff;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+
+.form-control::file-selector-button {
+    background: rgba(255, 193, 7, 0.2);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    color: #ffffff;
+    border-radius: 5px;
+    padding: 5px 10px;
+    margin-right: 10px;
+}
+
+.form-control::file-selector-button:hover {
+    background: rgba(255, 193, 7, 0.3);
+}
+
+.form-label {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.form-text {
+    color: #cccccc;
+}
+
+/* Status item styling */
+.status-item {
+    padding: 15px;
+    margin: 5px 0;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border-left: 4px solid #007bff;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Status box styling for position display */
+.status-box {
+    padding: 10px;
+    background: rgba(0, 123, 255, 0.1);
+    border-radius: 10px;
+    margin: 5px;
+    border: 2px solid rgba(0, 123, 255, 0.3);
+    transition: all 0.3s ease;
+    color: #ffffff;
+}
+
+.status-box:hover {
+    background: rgba(0, 123, 255, 0.2);
+    border-color: rgba(0, 123, 255, 0.5);
+}
+
+.status-label {
+    font-size: 0.8em;
+    font-weight: bold;
+    color: #cccccc;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-value {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #4dabf7;
+    margin-top: 5px;
+}
+
+/* Badge styling */
+.badge {
+    font-size: 0.9em;
+    padding: 8px 12px;
+    border-radius: 20px;
+}
+
+.badge.fs-6 {
+    font-size: 1rem !important;
+    padding: 10px 15px;
+}
+
+/* Alert styling */
+.alert {
+    border-radius: 15px;
+    border: none;
+    margin-top: 15px;
+}
+
+.alert-success {
+    background: linear-gradient(45deg, #1e4d2b, #2d5a3d);
+    color: #d4edda;
+    border: 1px solid #28a745;
+}
+
+.alert-danger {
+    background: linear-gradient(45deg, #4d1e1e, #5a2d2d);
+    color: #f8d7da;
+    border: 1px solid #dc3545;
+}
+
+.alert-warning {
+    background: linear-gradient(45deg, #4d3e1e, #5a4d2d);
+    color: #fff3cd;
+    border: 1px solid #ffc107;
+}
+
+.alert-info {
+    background: linear-gradient(45deg, #1e3d4d, #2d4a5a);
+    color: #d1ecf1;
+    border: 1px solid #17a2b8;
+}
+
+/* Navbar styling */
+.navbar {
+    backdrop-filter: blur(10px);
+    background: rgba(0, 0, 0, 0.95) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: #ffffff !important;
+}
+
+.navbar-text {
+    color: #ffffff !important;
+}
+
+/* Animation for connection status */
+#connection-status {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+/* Instructions styling */
+.list-unstyled li {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+.list-unstyled li:last-child {
+    border-bottom: none;
+}
+
+/* Text color overrides for black theme */
+.text-white {
+    color: #ffffff !important;
+}
+
+.text-dark {
+    color: #ffffff !important;
+}
+
+/* Card body text color */
+.card-body {
+    color: #ffffff;
+}
+
+/* Strong text color */
+strong {
+    color: #ffffff;
+}
+
+/* Waypoint preview styling */
+#waypoint-preview small {
+    color: #cccccc;
+    line-height: 1.4;
+}
+
+#waypoint-preview .text-muted {
+    color: #888888 !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 1rem;
+    }
+    
+    .card {
+        margin-bottom: 20px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+    
+    .status-box {
+        margin: 2px;
+        padding: 8px;
+    }
+    
+    .status-value {
+        font-size: 1em;
+    }
+} 

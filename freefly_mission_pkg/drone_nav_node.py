@@ -67,7 +67,7 @@ class SimpleDroneController(Node):
         
         # File paths for dynamic loading
         self.config_file_path = "/home/abhinandan/Downloads/Freefly/freefly_ws/src/freefly_mission_pkg/config/takeoff_config.yaml"
-        self.waypoints_file_path = "/home/abhinandan/Downloads/Freefly/freefly_ws/src/freefly_mission_pkg/config/waypoints.txt"
+        self.waypoints_file_path = "/home/abhinandan/Downloads/Freefly/freefly_ws/src/freefly_mission_pkg/data/waypoints/waypoints.txt"
         
         # Publishers to PX4
         self.vehicle_command_pub = self.create_publisher(
@@ -83,7 +83,7 @@ class SimpleDroneController(Node):
         
         # Subscribers from PX4
         self.vehicle_status_sub = self.create_subscription(
-            VehicleStatus, '/fmu/out/vehicle_status', 
+            VehicleStatus, '/fmu/out/vehicle_status_v1', 
             self.vehicle_status_callback, self.qos_profile)
         self.vehicle_local_position_sub = self.create_subscription(
             VehicleLocalPosition, '/fmu/out/vehicle_local_position',
@@ -121,16 +121,16 @@ class SimpleDroneController(Node):
         self.get_logger().info(f"Loaded config - Takeoff height: {self.config['takeoff_height']}m")
     
     def load_waypoint_data(self):
-        """Load waypoints using DroneUtilities"""
+        """Load waypoints from the uploaded waypoint file"""
         waypoints = DroneUtilities.load_waypoints(self.waypoints_file_path, self.get_logger())
         
         if waypoints:
             self.navigation_helper = NavigationHelper(waypoints, self.config['waypoint_tolerance'])
-            self.get_logger().info(f"Loaded {len(waypoints)} waypoints")
+            self.get_logger().info(f"Loaded {len(waypoints)} waypoints from uploaded file")
             return True
         else:
             self.navigation_helper = None
-            self.get_logger().error("No waypoints loaded")
+            self.get_logger().error("No waypoints loaded - upload a waypoint file through the webapp")
             return False
     
     def vehicle_status_callback(self, msg):
@@ -197,7 +197,7 @@ class SimpleDroneController(Node):
             if self.navigation_helper:
                 current_pos = [self.vehicle_local_position.x, self.vehicle_local_position.y, self.vehicle_local_position.z]
                 
-                if self.navigation_helper.check_waypoint_reached(current_pos,self.get_logger()):
+                if self.navigation_helper.check_waypoint_reached(current_pos, self.get_logger()):
                     progress = self.navigation_helper.get_mission_progress()
                     self.get_logger().info(f"Reached waypoint {progress['current_waypoint']}")
 
@@ -405,6 +405,9 @@ class SimpleDroneController(Node):
                     response.message = "Failed to load waypoints for mission"
                     return response
                 
+                # Log that we're using the uploaded waypoint file
+                self.get_logger().info("Using uploaded waypoint file from webapp")
+                
                 # Start mission with fresh data
                 self.mission_active = True
                 self.flight_state = "ARMING"  # Start mission from arming
@@ -420,7 +423,7 @@ class SimpleDroneController(Node):
                 self.get_logger().info("Mission will: ARM -> TAKEOFF -> NAVIGATE WAYPOINTS -> RETURN HOME -> LAND")
                 response.success = True
                 waypoint_count = len(self.navigation_helper.waypoints) if self.navigation_helper else 0
-                response.message = f"Waypoint mission started with fresh config and {waypoint_count} waypoints"
+                response.message = f"Waypoint mission started with {waypoint_count} waypoints from uploaded file"
                 
             elif self.flight_state == "LANDING":
                 response.success = False

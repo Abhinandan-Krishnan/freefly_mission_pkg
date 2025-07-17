@@ -50,18 +50,26 @@ class DroneUtilities:
     
     @staticmethod
     def load_waypoints(waypoints_file: str, logger=None) -> List[List[float]]:
-        """Load waypoints from text file"""
+        """Load waypoints from text file - supports both space-separated and comma-separated formats"""
         waypoints = []
         
         try:
             with open(waypoints_file, 'r') as file:
-                for line in file:
+                for line_num, line in enumerate(file, 1):
                     line = line.strip()
                     if line and not line.startswith('#'):
-                        parts = line.split()
-                        if len(parts) >= 3:
-                            x, y, z = float(parts[0]), float(parts[1]), float(parts[2])
-                            waypoints.append([x, y, -z])  # Convert to NED frame (z negative)
+                        # Try comma-separated format first (webapp format)
+                        if ',' in line:
+                            parts = line.split(',')
+                            if len(parts) >= 3:
+                                x, y, z = float(parts[0].strip()), float(parts[1].strip()), float(parts[2].strip())
+                                waypoints.append([x, y, -z])  # Convert to NED frame (z negative)
+                        else:
+                            # Try space-separated format (legacy format)
+                            parts = line.split()
+                            if len(parts) >= 3:
+                                x, y, z = float(parts[0]), float(parts[1]), float(parts[2])
+                                waypoints.append([x, y, -z])  # Convert to NED frame (z negative)
                 
                 if logger:
                     logger.info(f"Loaded {len(waypoints)} waypoints from {waypoints_file}")
