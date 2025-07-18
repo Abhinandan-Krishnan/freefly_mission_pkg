@@ -22,7 +22,7 @@ from .drone_utilities import DroneUtilities, NavigationHelper
 
 class SimpleDroneController(Node):
     def __init__(self):
-        super().__init__('simple_drone_controller')
+        super().__init__('drone_nav_node')
         
         # Parameters
         self.declare_parameter('config_file', 'takeoff_config.yaml')

@@ -303,6 +303,178 @@ fetch('/api/current_data')
         console.error('Error loading initial data:', error);
     });
 
+// Flight data plotting functionality
+document.getElementById('plot-flight-data').addEventListener('click', function() {
+    const button = this;
+    const statusDiv = document.getElementById('plot-status');
+    const plotContainer = document.getElementById('flight-plot-container');
+    
+    // Disable button and show loading
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading Data...';
+    statusDiv.style.display = 'block';
+    statusDiv.innerHTML = '<div class="alert alert-info">Loading flight data...</div>';
+    
+    fetch('/api/get_flight_data')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Flight data response:', data);
+            
+            if (data.success) {
+                statusDiv.innerHTML = '<div class="alert alert-success">Flight data loaded successfully!</div>';
+                
+                // Update statistics
+                document.getElementById('data-points').textContent = data.stats.data_points;
+                document.getElementById('flight-duration').textContent = `${data.stats.flight_duration_minutes} min (${data.stats.flight_duration_seconds}s)`;
+                
+                // Create 3D plot
+                createFlightPlot(data.positions, data.stats);
+                
+                // Show plot container
+                plotContainer.style.display = 'block';
+                
+            } else {
+                statusDiv.innerHTML = '<div class="alert alert-warning">' + data.message + '</div>';
+            }
+            
+            // Re-enable button
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-chart-3d"></i> Plot Flight Path';
+        })
+        .catch(error => {
+            console.error('Plot error:', error);
+            statusDiv.innerHTML = '<div class="alert alert-danger">Error loading flight data: ' + error.message + '</div>';
+            
+            // Re-enable button
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-chart-3d"></i> Plot Flight Path';
+        });
+});
+
+function createFlightPlot(positions, stats) {
+    // Extract coordinates
+    const x_coords = positions.map(pos => pos[0]);
+    const y_coords = positions.map(pos => pos[1]);
+    const z_coords = positions.map(pos => pos[2]);
+    
+    // Create color gradient based on time
+    const colors = [];
+    for (let i = 0; i < positions.length; i++) {
+        const intensity = i / positions.length;
+        colors.push(`rgb(${Math.floor(255 * intensity)}, ${Math.floor(100 + 155 * intensity)}, ${Math.floor(255 * (1 - intensity))})`);
+    }
+    
+    // Create the 3D scatter plot
+    const trace = {
+        x: x_coords,
+        y: y_coords,
+        z: z_coords,
+        mode: 'lines+markers',
+        type: 'scatter3d',
+        line: {
+            color: colors,
+            width: 3
+        },
+        marker: {
+            size: 2,
+            color: colors,
+            opacity: 0.8
+        },
+        name: 'Flight Path'
+    };
+    
+    // Add start and end markers
+    const startTrace = {
+        x: [x_coords[0]],
+        y: [y_coords[0]],
+        z: [z_coords[0]],
+        mode: 'markers',
+        type: 'scatter3d',
+        marker: {
+            size: 8,
+            color: 'green',
+            symbol: 'diamond'
+        },
+        name: 'Start'
+    };
+    
+    const endTrace = {
+        x: [x_coords[x_coords.length - 1]],
+        y: [y_coords[y_coords.length - 1]],
+        z: [z_coords[z_coords.length - 1]],
+        mode: 'markers',
+        type: 'scatter3d',
+        marker: {
+            size: 8,
+            color: 'red',
+            symbol: 'diamond'
+        },
+        name: 'End'
+    };
+    
+    const layout = {
+        title: {
+            text: 'Drone Flight Path 3D Visualization',
+            font: { color: '#ffffff' }
+        },
+        scene: {
+            xaxis: {
+                title: 'X (meters)',
+                gridcolor: '#444444',
+                zerolinecolor: '#666666',
+                titlefont: { color: '#ffffff' },
+                tickfont: { color: '#ffffff' }
+            },
+            yaxis: {
+                title: 'Y (meters)',
+                gridcolor: '#444444',
+                zerolinecolor: '#666666',
+                titlefont: { color: '#ffffff' },
+                tickfont: { color: '#ffffff' }
+            },
+            zaxis: {
+                title: 'Z (meters)',
+                gridcolor: '#444444',
+                zerolinecolor: '#666666',
+                titlefont: { color: '#ffffff' },
+                tickfont: { color: '#ffffff' }
+            },
+            bgcolor: '#1a1a1a',
+            camera: {
+                eye: { x: 1.5, y: 1.5, z: 1.5 }
+            }
+        },
+        paper_bgcolor: '#000000',
+        plot_bgcolor: '#000000',
+        font: { color: '#ffffff' },
+        margin: { l: 0, r: 0, t: 50, b: 0 },
+        height: 600,
+        width: null, // Use full container width
+        autosize: true,
+        showlegend: true,
+        legend: {
+            font: { color: '#ffffff' },
+            bgcolor: 'rgba(0,0,0,0.8)'
+        }
+    };
+    
+    const config = {
+        responsive: true,
+        displayModeBar: true,
+        modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d'],
+        displaylogo: false,
+        autosize: true
+    };
+    
+    // Create the plot
+    Plotly.newPlot('flight-plot', [trace, startTrace, endTrace], layout, config);
+    
+    // Handle window resize to make plot responsive
+    window.addEventListener('resize', function() {
+        Plotly.Plots.resize('flight-plot');
+    });
+}
+
 // Load current waypoint file info
 loadCurrentWaypointFile();
 

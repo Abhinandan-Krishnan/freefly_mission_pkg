@@ -329,6 +329,86 @@ def get_current_waypoint_file():
             'message': 'No waypoint file uploaded'
         })
 
+@app.route('/api/get_flight_data', methods=['GET'])
+def get_flight_data():
+    """Get flight position data for plotting"""
+    try:
+        # Path to the drone position data file
+        data_file_path = "/home/abhinandan/Downloads/Freefly/freefly_ws/src/freefly_mission_pkg/data/drone_position.txt"
+        
+        if not os.path.exists(data_file_path):
+            return jsonify({
+                'success': False,
+                'message': 'No flight data file found'
+            })
+        
+        # Read and parse the position data
+        positions = []
+        with open(data_file_path, 'r') as f:
+            for line_num, line in enumerate(f, 1):
+                line = line.strip()
+                if line:
+                    try:
+                        # Parse X,Y,Z coordinates
+                        coords = line.split(',')
+                        if len(coords) >= 3:
+                            x = float(coords[0].strip())
+                            y = float(coords[1].strip())
+                            z = float(coords[2].strip())
+                            positions.append([x, y, z])
+                        else:
+                            print(f"Warning: Invalid format at line {line_num}")
+                    except ValueError:
+                        print(f"Warning: Invalid coordinates at line {line_num}")
+        
+        if not positions:
+            return jsonify({
+                'success': False,
+                'message': 'No valid position data found'
+            })
+        
+        # Calculate flight statistics
+        data_points = len(positions)
+        
+        # Estimate flight duration (assuming 10Hz data collection)
+        flight_duration_seconds = data_points / 10.0
+        flight_duration_minutes = flight_duration_seconds / 60.0
+        
+        # Calculate flight distance
+        total_distance = 0.0
+        for i in range(1, len(positions)):
+            dx = positions[i][0] - positions[i-1][0]
+            dy = positions[i][1] - positions[i-1][1]
+            dz = positions[i][2] - positions[i-1][2]
+            total_distance += (dx**2 + dy**2 + dz**2)**0.5
+        
+        # Calculate flight bounds
+        x_coords = [pos[0] for pos in positions]
+        y_coords = [pos[1] for pos in positions]
+        z_coords = [pos[2] for pos in positions]
+        
+        flight_stats = {
+            'data_points': data_points,
+            'flight_duration_seconds': round(flight_duration_seconds, 1),
+            'flight_duration_minutes': round(flight_duration_minutes, 1),
+            'total_distance': round(total_distance, 2),
+            'x_range': [min(x_coords), max(x_coords)],
+            'y_range': [min(y_coords), max(y_coords)],
+            'z_range': [min(z_coords), max(z_coords)]
+        }
+        
+        return jsonify({
+            'success': True,
+            'positions': positions,
+            'stats': flight_stats
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error reading flight data: {str(e)}'
+        })
+
 # SocketIO events
 @socketio.on('connect')
 def handle_connect():

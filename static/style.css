@@ -262,6 +262,49 @@ strong {
     color: #888888 !important;
 }
 
+/* Flight plot styling */
+#flight-plot-container {
+    background: rgba(20, 20, 20, 0.95);
+    border-radius: 15px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+#flight-plot {
+    width: 100% !important;
+    height: 600px;
+    border-radius: 10px;
+    overflow: hidden;
+    min-width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Ensure the plot container row uses full width */
+#flight-plot-container .row {
+    width: 100%;
+    margin: 0;
+}
+
+#flight-plot-container .col-12 {
+    width: 100%;
+    padding: 0;
+}
+
+/* Success button styling */
+.btn-success {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    color: #ffffff;
+}
+
+.btn-success:hover {
+    background: linear-gradient(45deg, #218838, #1ea085);
+    color: #ffffff;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     .container-fluid {
