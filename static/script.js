@@ -357,6 +357,19 @@ function createFlightPlot(positions, stats) {
     const y_coords = positions.map(pos => pos[1]);
     const z_coords = positions.map(pos => pos[2]);
     
+    // Calculate axis limits (20 units from max values)
+    const x_max = Math.max(...x_coords);
+    const y_max = Math.max(...y_coords);
+    const z_max = Math.max(...z_coords);
+    const x_min = Math.min(...x_coords);
+    const y_min = Math.min(...y_coords);
+    const z_min = Math.min(...z_coords);
+    
+    // Set limits to be 20 units from the max values
+    const x_limit = x_max + 20;
+    const y_limit = y_max + 20;
+    const z_limit = z_max + 20;
+    
     // Create color gradient based on time
     const colors = [];
     for (let i = 0; i < positions.length; i++) {
@@ -423,21 +436,24 @@ function createFlightPlot(positions, stats) {
                 gridcolor: '#444444',
                 zerolinecolor: '#666666',
                 titlefont: { color: '#ffffff' },
-                tickfont: { color: '#ffffff' }
+                tickfont: { color: '#ffffff' },
+                range: [x_min - 5, x_limit]
             },
             yaxis: {
                 title: 'Y (meters)',
                 gridcolor: '#444444',
                 zerolinecolor: '#666666',
                 titlefont: { color: '#ffffff' },
-                tickfont: { color: '#ffffff' }
+                tickfont: { color: '#ffffff' },
+                range: [y_min - 5, y_limit]
             },
             zaxis: {
                 title: 'Z (meters)',
                 gridcolor: '#444444',
                 zerolinecolor: '#666666',
                 titlefont: { color: '#ffffff' },
-                tickfont: { color: '#ffffff' }
+                tickfont: { color: '#ffffff' },
+                range: [z_min - 5, z_limit]
             },
             bgcolor: '#1a1a1a',
             camera: {

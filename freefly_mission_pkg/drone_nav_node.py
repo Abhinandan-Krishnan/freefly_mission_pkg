@@ -60,14 +60,14 @@ class SimpleDroneController(Node):
         self.navigation_helper = None
         
         # Position logging
-        self.data_folder = "/home/abhinandan/Downloads/Freefly/freefly_ws/src/freefly_mission_pkg/data"
+        self.data_folder = "/opt/ros_ws/src/freefly_mission_pkg/data"
         os.makedirs(self.data_folder, exist_ok=True)
         self.position_log_file = None
 
         
         # File paths for dynamic loading
-        self.config_file_path = "/home/abhinandan/Downloads/Freefly/freefly_ws/src/freefly_mission_pkg/config/takeoff_config.yaml"
-        self.waypoints_file_path = "/home/abhinandan/Downloads/Freefly/freefly_ws/src/freefly_mission_pkg/data/waypoints/waypoints.txt"
+        self.config_file_path = "/opt/ros_ws/src/freefly_mission_pkg/config/takeoff_config.yaml"
+        self.waypoints_file_path = "/opt/ros_ws/src/freefly_mission_pkg/data/waypoints/waypoints.txt"
         
         # Publishers to PX4
         self.vehicle_command_pub = self.create_publisher(

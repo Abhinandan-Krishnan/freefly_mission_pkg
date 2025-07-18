@@ -18,11 +18,6 @@ def generate_launch_description():
                 {'web_port': 5000},
                 {'web_host': '0.0.0.0'}
             ]
-        ),
-        
-        # Optionally open browser after 3 seconds
-        ExecuteProcess(
-            cmd=['bash', '-c', 'sleep 3 && xdg-open http://localhost:5000'],
-            output='screen'
         )
+        
     ]) 

@@ -20,14 +20,14 @@ username = getpass.getuser()
 
 # Initialize Flask app with proper paths
 app = Flask(__name__, 
-            static_folder=f'/home/{username}/Downloads/Freefly/freefly_ws/src/freefly_mission_pkg/static',
-            template_folder=f'/home/{username}/Downloads/Freefly/freefly_ws/src/freefly_mission_pkg/freefly_mission_pkg/templates')
+            static_folder=f'/opt/ros_ws/src/freefly_mission_pkg/static',
+            template_folder=f'/opt/ros_ws/src/freefly_mission_pkg/freefly_mission_pkg/templates')
 app.config['SECRET_KEY'] = 'drone_control_secret_key'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 # Create waypoints directory if it doesn't exist
-waypoints_dir = f'/home/{username}/Downloads/Freefly/freefly_ws/src/freefly_mission_pkg/data/waypoints'
+waypoints_dir = f'/opt/ros_ws/src/freefly_mission_pkg/data/waypoints'
 os.makedirs(waypoints_dir, exist_ok=True)
 
 # Global variables to hold drone data
@@ -334,7 +334,7 @@ def get_flight_data():
     """Get flight position data for plotting"""
     try:
         # Path to the drone position data file
-        data_file_path = "/home/abhinandan/Downloads/Freefly/freefly_ws/src/freefly_mission_pkg/data/drone_position.txt"
+        data_file_path = "/opt/ros_ws/src/freefly_mission_pkg/data/drone_position.txt"
         
         if not os.path.exists(data_file_path):
             return jsonify({
